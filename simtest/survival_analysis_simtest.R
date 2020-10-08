@@ -14,12 +14,8 @@ library(survival)
 library(survminer)
 
 
-# Define functions --------------------------------------------------------
-
-# count the first positive occurrence of a binary variable (in this case, alive vs dead) in a time series
-first.1 <- function(x){
-  match(1, x)
-
+source("survival_functions.R")
+  
 # Set up parameters for data simulation ---------------------------------------------
 
 # set up 50 time steps
@@ -43,9 +39,9 @@ ctemp <- scale(temp, center = TRUE, scale = TRUE)
 chand_time <- scale(hand_time, center = TRUE, scale = TRUE)
 
 # define beta coefficients for each variable and for the interaction between them
-btemp <- -0.5
+btemp <- -0.75
 bhand_time <- 0.8
-b_int <- 0.1
+b_int <- 0.5
 
 
 # Simulate data -----------------------------------------------------------
@@ -77,14 +73,16 @@ simulate <- function(n, t){
     summarize_all(first.1)
   
   # combine capture and time of death data
+  # include indicator column showing whether the data is censored
   data <- cbind(cap, t(survtime))
   colnames(data)[4] <- "survtime"
+  data$cens <- ifelse(is.na(data$survtime),0, 1)
+  data$survtime <- as.numeric(ifelse(is.na(data$survtime), max(t), survtime))
   return(data)
 }
 
-simdat <- simulate(n = n, t = t)
+simdat <- simulate(n = 100, t = t)
 
-## Fit survival model and see if it detects significant coefficient values for temp and handling time
-
+test.sig(fit.mod(simdat))
 
 # write function to iterate this across many sample sizes
