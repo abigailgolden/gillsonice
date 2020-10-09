@@ -14,7 +14,7 @@ library(survival)
 library(survminer)
 
 
-source("survival_functions.R")
+source("simtest/survival_functions.R")
   
 # Set up parameters for data simulation ---------------------------------------------
 
@@ -63,7 +63,7 @@ simulate <- function(n, t){
                        prob = h0[i]*exp(btemp*cap[,2] + bhand_time*cap[,3] + 
                                           b_int*cap[,2]*cap[,3]))
     } else {
-      dat[i,] <- ifelse(t > 1 & dat[i-1,] == 1, 1, rbinom(n,1, 
+      dat[i,] <- ifelse(dat[i-1,] == 1, 1, rbinom(n,1, 
                         prob = h0[i]*exp(btemp*cap[,2] + bhand_time*cap[,3] + 
                                            b_int*cap[,2]*cap[,3])))
     }
@@ -85,4 +85,35 @@ simdat <- simulate(n = 100, t = t)
 
 test.sig(fit.mod(simdat))
 
-# write function to iterate this across many sample sizes
+# write function to iterate this process across many sample sizes
+Ns <- seq(10, 50, by = 5)
+Ts <- seq(10,50, by = 5)
+
+
+iterate <- function(Ns, Ts){
+ 
+  n_iters <- length(Ns)*length(Ts) 
+  out <- data.frame(timesteps = rep(NA, n_iters),
+                    samplesize = rep(NA, n_iters),
+                    b1_sig = rep(NA, n_iters),
+                    b2_sig = rep(NA, n_iters),
+                    b3_sig = rep(NA, n_iters))
+  r <- 1
+  
+  for (k in 1:length(Ts)){
+    t <- seq(1, Ts[k], by = 1)
+      for (l in 1:length(Ns)){
+        data <- simulate(n = Ns[l], t = t)
+        mod <- fit.mod(data)
+        temp <- test.sig(summary(mod))
+        out[r,1] <- Ts[k]
+        out[r,2] <- Ns[l]
+        out[r,3:5] <- temp
+        r <- r + 1
+    }
+  }
+ 
+  return(out)
+}
+
+power_analysis <- iterate(Ns = Ns, Ts = Ts)
