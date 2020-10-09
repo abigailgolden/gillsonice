@@ -139,7 +139,11 @@ test2 <- power_analysis(samplesize = ns)
 reshape_test <- pivot_longer(test2, cols = 3:6, names_to = "number_significant",
                              values_to = "prop_sims")
 
-ggplot(reshape_test, aes(x = samplesize, y = prop_sims))+
+p <- ggplot(reshape_test, aes(x = samplesize, y = prop_sims))+
   geom_line(aes(color = number_significant))+
-  theme_bw()
+  labs(x = "Sample size", y = "Proportion of simulations")+
+  scale_color_discrete(name = "Number of significant\ncoefficient estimates", labels = c("0", "1", "2", "3"))+
+  annotate(geom = "text", x = 50, y = 0.9, label = "h(t) = h(0)exp(b1*temp +\nb2*handling time + b3*temp*handling time)")+
+  theme_classic()
  
+ggsave("survival_power_analysis.png", p)
