@@ -9,7 +9,7 @@ first.1 <- function(x){
 
 fit.mod <- function(d){
   fit <- coxph(Surv(survtime, cens) ~ ctemp + chand_time + ctemp*chand_time, data = d)
-  return(summary(fit))
+  return(fit)
   
 }
 
@@ -21,4 +21,10 @@ test.sig <- function(model_obj){
   s_int <- ifelse(fit$coefficients[3,5] < 0.05, 1,0)
   sig <- c(stemp, shand_time, s_int)
   return(sig)
+}
+
+# calculate proportion of total simulations
+
+prop <- function(x){
+  x/nsims
 }
