@@ -22,9 +22,3 @@ test.sig <- function(model_obj){
   sig <- c(stemp, shand_time, s_int)
   return(sig)
 }
-
-# calculate proportion of total simulations
-
-prop <- function(x){
-  x/nsims
-}

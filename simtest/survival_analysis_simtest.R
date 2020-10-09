@@ -46,7 +46,6 @@ b_int <- 0.5
 
 # Simulate data -----------------------------------------------------------
 
-#n <- seq(10,100, by = 5)
 n <- 50
 
 simulate <- function(n, t){
@@ -81,14 +80,8 @@ simulate <- function(n, t){
   return(data)
 }
 
-simdat <- simulate(n = 100, t = t)
 
 # write function to iterate this process many times for a given sample size
-
-#ts <- seq(10,50, by = 5)
-
-
-
 
 iterate <- function(nsims, N){
   n_iters <- nsims
@@ -117,6 +110,8 @@ iterate <- function(nsims, N){
     
 }
 
+# and now to run a power analysis across sample sizes
+
 power_analysis <- function(samplesize){
   n_iters <- length(samplesize)
   out <- data.frame(timesteps = rep(NA, n_iters),
@@ -131,6 +126,11 @@ power_analysis <- function(samplesize){
   }
   return(out)
 }
+
+
+# Power analysis ----------------------------------------------------------
+
+
 
 ns<- seq(15, 100, by = 5)
 
