@@ -39,10 +39,10 @@ ctemp <- scale(temp, center = TRUE, scale = TRUE)
 chand_time <- scale(hand_time, center = TRUE, scale = TRUE)
 
 # define beta coefficients for each variable and for the interaction between them
-btemp <- -0.75
+btemp <- -0.8
 bhand_time <- 0.8
 b_int <- 0.5
-b_cage <- -0.3  # fish released in predator-control cage are less likely to die
+b_cage <- -0.5  # fish released in predator-control cage are less likely to die
 
 
 # Simulate data -----------------------------------------------------------
@@ -149,7 +149,7 @@ p <- ggplot(reshape_test, aes(x = samplesize, y = prop_sims))+
   geom_line(aes(color = number_significant))+
   labs(x = "Sample size", y = "Proportion of simulations")+
   scale_color_discrete(name = "Number of significant\ncoefficient estimates", labels = c("0", "1", "2", "3", "4"))+
-  annotate(geom = "text", x = 250, y = 0.2, label = "h(t) = h(0)exp(b1*temp +\nb2*handling time + b3*cage + b4*temp*handling time)")+
+  annotate(geom = "text", x = 300, y = 0.7, label = "h(t) = h(0)exp(b1*temp +\nb2*handling time + b3*cage + b4*temp*handling time)")+
   annotate(geom = "text", x = 100, y = 0.8, label = paste0("Proportion caged:\n", pcage))+
   scale_x_continuous(breaks = seq(0,max(ns), by = 25))+
   theme_classic()
