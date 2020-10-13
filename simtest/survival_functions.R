@@ -8,7 +8,7 @@ first.1 <- function(x){
 ## Fit a cox proportional hazards model
 
 fit.mod <- function(d){
-  fit <- coxph(Surv(survtime, cens) ~ ctemp + chand_time + ctemp*chand_time, data = d)
+  fit <- coxph(Surv(survtime, cens) ~ ctemp + chand_time + ctemp*chand_time + cage, data = d)
   return(fit)
   
 }
@@ -19,6 +19,7 @@ test.sig <- function(model_obj){
   stemp <- ifelse(fit$coefficients[1,5] < 0.05, 1,0)
   shand_time <- ifelse(fit$coefficients[2,5] < 0.05, 1,0)
   s_int <- ifelse(fit$coefficients[3,5] < 0.05, 1,0)
-  sig <- c(stemp, shand_time, s_int)
+  s_cage <- ifelse(fit$coefficients[4,5] < 0.05, 1, 0)
+  sig <- c(stemp, shand_time, s_int, s_cage)
   return(sig)
 }
