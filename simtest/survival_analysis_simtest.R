@@ -86,26 +86,26 @@ simulate <- function(n, t, pcage){
 }
 
 
-# write function to iterate this process many times for a given sample size
+# write function to iterate this process many times for a given sample size and number of timesteps
 
-iterate <- function(nsims, N, pcage){
+iterate <- function(nsims, N, timesteps, pcage){
   n_iters <- nsims
-  out <- data.frame(timesteps = rep(NA, n_iters),
+  out <- data.frame(ts = rep(NA, n_iters),
                     samplesize = rep(NA, n_iters),
                     b1_sig = rep(NA, n_iters),
                     b2_sig = rep(NA, n_iters),
                     b3_sig = rep(NA, n_iters),
                     b4_sig = rep(NA, n_iters))
   for (j in 1:nsims){
-    data <- simulate(n = N, t = t, pcage = pcage)
+    data <- simulate(n = N, t = timesteps, pcage = pcage)
     mod <- fit.mod(data)
     temp <- test.sig(summary(mod))
-    out[j,1] <- max(t)
+    out[j,1] <- max(timesteps)
     out[j,2] <- N
     out[j,3:6] <- temp
   }
   prop_sig <- out %>% 
-    group_by(timesteps, samplesize) %>% 
+    group_by(ts, samplesize) %>% 
   summarize(sig0 = (length(which(rowSums(.[,3:6]) == 0)))/nsims,
             sig1 = (length(which(rowSums(.[,3:6]) == 1)))/nsims,
             sig2 = (length(which(rowSums(.[,3:6]) == 2)))/nsims,
@@ -117,9 +117,11 @@ iterate <- function(nsims, N, pcage){
     
 }
 
+#test <- iterate(nsims = 100, N = )
+
 # and now to run a power analysis across sample sizes
 
-power_analysis <- function(samplesize){
+n_power_analysis <- function(samplesize){
   n_iters <- length(samplesize)
   out <- data.frame(timesteps = rep(NA, n_iters),
                     samplesize = rep(NA, n_iters),
@@ -135,12 +137,36 @@ power_analysis <- function(samplesize){
   return(out)
 }
 
+# write function to run power analysis across a varying number of timesteps at a given sample size
 
-# Power analysis ----------------------------------------------------------
+Ts <- seq(7, 49, by = 7)
+samplesize <- 100
+timesteps <- Ts
+
+t_power_analysis <- function(timesteps, samplesize){
+  n <- samplesize
+  n_iters <- length(timesteps)
+  out <- data.frame(ts = rep(NA, n_iters),
+                    samplesize = rep(NA, n_iters),
+                    sig0 = rep(NA, n_iters),
+                    sig1 = rep(NA, n_iters),
+                    sig2 = rep(NA, n_iters),
+                    sig3 = rep(NA, n_iters),
+                    sig4 = rep(NA, n_iters))
+  for (k in 1:length(timesteps)){
+    t <- 1:timesteps[k]
+    dat <- iterate(nsims = 100, N = n, timesteps = t, pcage = pcage)
+    out[k,] <- dat
+  }
+  return(out)
+}
+
+
+# Sample size power analysis ----------------------------------------------------
 
 ns<- seq(30, 500, by = 25)
 
-test2 <- power_analysis(samplesize = ns)
+test2 <- n_power_analysis(samplesize = ns, timesteps = max(t))
 
 reshape_test <- pivot_longer(test2, cols = 3:7, names_to = "number_significant",
                              values_to = "prop_sims")
@@ -157,3 +183,26 @@ p <- ggplot(reshape_test, aes(x = samplesize, y = prop_sims))+
 print(p)
  
 ggsave("survival_power_analysis_4vars.png", p, width = 10, height = 5, units = "in")
+
+
+
+# Time steps power analysis -----------------------------------------------
+
+Ts <- seq(7, 49, by = 7)
+n <- 100
+
+tpa <- t_power_analysis(samplesize = n, timesteps = Ts)
+tpa_long <- pivot_longer(tpa, cols = 3:7, names_to = "number_significant",
+                         values_to = "prop_sims")
+
+p <- ggplot(tpa_long, aes(x = ts, y = prop_sims))+
+  geom_line(aes(color = number_significant))+
+  labs(x = "Number of timesteps", y = "Proportion of simulations")+
+  scale_color_discrete(name = "Number of significant\ncoefficient estimates", labels = c("0", "1", "2", "3", "4"))+
+  annotate(geom = "text", x =28, y = 0.3, label = "h(t) = h(0)exp(b1*temp +\nb2*handling time + b3*cage + b4*temp*handling time)")+
+  annotate(geom = "text", x = 20, y = 0.8, label = paste0("Proportion caged: ", pcage))+
+  annotate(geom = "text", x = 45, y = 0.8, label = paste0("Sample size = ", n))+
+  scale_x_continuous(breaks = seq(0, max(Ts), by = 7))+
+  theme_classic()
+
+print(p)
